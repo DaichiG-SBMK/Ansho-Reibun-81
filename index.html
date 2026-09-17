@@ -273,16 +273,35 @@ function updateSeqLabel(){
 }
 
 function startSeq(){
-  const store=loadStore();
+  const store = loadStore();
+  const selected = items.map(x => x.id);
+
+  // 途中記録があり、現在の問題数・内容と一致している場合だけ再開
   if(store.inProgress?.seq){
-    session=store.inProgress.seq;
-    render();
-    return;
+    const savedIds = store.inProgress.seq.ids || [];
+
+    const isSame =
+      savedIds.length === selected.length &&
+      savedIds.every((id, i) => id === selected[i]);
+
+    if(isSame){
+      session = store.inProgress.seq;
+      render();
+      return;
+    }
   }
-  const selected=items.map(x=>x.id);
-  store.inProgress={seq:{mode:"seq",ids:selected,idx:0}};
+
+  // 問題数や内容が変わっていたら、現在の全問題で最初から開始
+  store.inProgress = {
+    seq:{
+      mode:"seq",
+      ids:selected,
+      idx:0
+    }
+  };
+
   saveStore(store);
-  session=store.inProgress.seq;
+  session = store.inProgress.seq;
   render();
 }
 
